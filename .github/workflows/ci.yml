@@ -1,0 +1,42 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Terraform, scripts, workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.13"
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
+        with:
+          terraform_version: "<1.18.0"
+          terraform_wrapper: false
+      - run: pip install checkov shellcheck-py actionlint-py zizmor
+      - run: terraform fmt -check -recursive .
+      - run: |
+          for d in terraform modules/security-baseline/examples/client; do
+            terraform -chdir="$d" init -backend=false -input=false >/dev/null
+            terraform -chdir="$d" validate
+          done
+      - run: checkov -d terraform --framework terraform --config-file .checkov.yaml --quiet --compact
+      - run: checkov -d modules/security-baseline --framework terraform --config-file .checkov.yaml --quiet --compact
+      - run: shellcheck -x -P SCRIPTDIR scripts/*.sh fix-pack/scripts/*.sh
+      - run: actionlint
+      - run: zizmor --min-severity low .github

@@ -1,0 +1,2 @@
+skip-check:
+  - CKV_AWS_356   # iam:ListRoles / ListPolicies / OIDC provider reads only work with Resource "*"
