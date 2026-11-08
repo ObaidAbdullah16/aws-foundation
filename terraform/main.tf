@@ -270,6 +270,7 @@ resource "aws_iam_role_policy" "scoped_iam" {
 # GuardDuty and AWS Config off unless you choose them (they cost money every month).
 # ---------------------------------------------------------------------------
 module "baseline" {
+  #checkov:skip=CKV_AWS_67:A project account (new AWS sign-up) works in one Region only, so its trail covers that Region
   source = "../modules/security-baseline"
 
   name_prefix                      = "foundation"
