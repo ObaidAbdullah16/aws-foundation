@@ -1,0 +1,20 @@
+# Facts Lifeline cannot see from outside. .github/workflows/lifeline.yml scans this repository every Monday.
+# Keep it honest: the score is only as true as this file.
+project: aws-foundation
+security_contact: hello@obaidabdullah.com
+
+backups:
+  - name: source code
+    what: every file of this repository (not the git history, issues or pull requests)
+    location: the Career folder on OneDrive and the laptop's WSL copy; GitHub is published from them
+    isolated: true   # losing the GitHub account does not touch OneDrive
+  - name: terraform state
+    what: the record of what Terraform created in AWS
+    location: S3 bucket tfstate-<account>-<region> with versioning, in the same AWS account
+    isolated: false  # the same AWS login could delete it (everything it describes can be rebuilt from code)
+
+cost:
+  monthly_spend_usd: 0.05   # budgets, CloudTrail and log storage: a few cents
+  credits_remaining_usd: 199   # AWS credits left on the last publish (_setup/lifeline-credits.py)
+  credits_expire: 2027-04-23   # end of the AWS Free plan / credits (_setup/lifeline-credits.py)
+  budget_alerts: true    # aws-foundation budgets: alerts at $1/day and $10, $16 and $20 a month
